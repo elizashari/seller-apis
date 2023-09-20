@@ -11,6 +11,21 @@ logger = logging.getLogger(__file__)
 
 
 def get_product_list(page, campaign_id, access_token):
+    """Получение списка товаров продавца на Yandex.market.
+
+    Args:
+        page (str): Идентификатор страницы c результатами.
+        campaign_id (str): Идентификатор клиента для работы с выбранной схемой.
+        access_token (str): API-ключ клиента.
+
+    Returns:
+        dict: Содержит информацию о товарах.
+
+    Raises:
+        HTTPError.
+
+    """
+
     endpoint_url = "https://api.partner.market.yandex.ru/"
     headers = {
         "Content-Type": "application/json",
@@ -30,6 +45,20 @@ def get_product_list(page, campaign_id, access_token):
 
 
 def update_stocks(stocks, campaign_id, access_token):
+    """Обновление количества товара продавца на маркетплейсе Yandex.market.
+
+    Args:
+        stocks(list): Список с информацией о наличии товаров в магазине (timeworld.ru).
+        campaign_id (str): Идентификатор клиента для работы с выбранной схемой.
+        access_token (str): API-ключ клиента.
+
+    Returns:
+        dict: Содержит обновленную информацию о товарах.
+
+    Raises:
+        HTTPError.
+
+    """
     endpoint_url = "https://api.partner.market.yandex.ru/"
     headers = {
         "Content-Type": "application/json",
@@ -46,6 +75,21 @@ def update_stocks(stocks, campaign_id, access_token):
 
 
 def update_price(prices, campaign_id, access_token):
+    """Обновление цены на товары на на маркетплейсе Yandex.market.
+
+    Args:
+        prices (list): Список содержащий информацию о ценах на товары.
+        campaign_id (str): Идентификатор клиента для работы с выбранной схемой.
+        access_token (str): API-ключ клиента.
+
+    Returns:
+        dict: Содержит обновленную информацию о ценах на товары.
+
+    Raises:
+        HTTPError.
+
+    """
+
     endpoint_url = "https://api.partner.market.yandex.ru/"
     headers = {
         "Content-Type": "application/json",
@@ -62,7 +106,19 @@ def update_price(prices, campaign_id, access_token):
 
 
 def get_offer_ids(campaign_id, market_token):
-    """Получить артикулы товаров Яндекс маркета"""
+    """Получить артикулы товаров Яндекс маркета
+    
+    Args:
+        campaign_id (str): Идентификатор клиента для работы с выбранной схемой.
+        access_token (str): API-ключ клиента.
+
+    Returns:
+        list: Список с артикулами товаров продавца.
+
+    Raises:
+        HTTPError.
+
+    """
     page = ""
     product_list = []
     while True:
@@ -78,6 +134,18 @@ def get_offer_ids(campaign_id, market_token):
 
 
 def create_stocks(watch_remnants, offer_ids, warehouse_id):
+     """Создаем информацию о количестве товаров в магазине (timeworld.ru).
+
+    Args:
+        watch_remnants (dict): Информация и количество товаров в магазине (timeworld.ru).
+        offer_ids (list): Список артикулов товаров продавца на маркетплейсе Yandex.market.
+        warehouse_id (str): Идентификатор склада.
+
+    Returns:
+        list: Список с количеством товаров продавца на маркетплейсе
+        Yandex.market (В том числе товары с количеством 0).
+
+    """
     # Уберем то, что не загружено в market
     stocks = list()
     date = str(datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z")
@@ -123,6 +191,19 @@ def create_stocks(watch_remnants, offer_ids, warehouse_id):
 
 
 def create_prices(watch_remnants, offer_ids):
+    """Создаем цены на товары продавца для Yandex.market.
+
+    Args:
+        watch_remnants (dict): Информация и количесто товаров
+        в магазине (timeworld.ru).
+        offer_ids (list): Список артикулов товаров продавца
+        на маркетплейсе Yandex.market.
+
+    Returns:
+        list: Список цен на товары продавца на маркетплейсе
+        Yandex.market.
+
+    """
     prices = []
     for watch in watch_remnants:
         if str(watch.get("Код")) in offer_ids:
@@ -143,6 +224,19 @@ def create_prices(watch_remnants, offer_ids):
 
 
 async def upload_prices(watch_remnants, campaign_id, market_token):
+    """Обновление цен на товары продавца на маркетплейсе Yandex.market.
+
+    Args:
+        watch_remnants (dict): Информация и количесто товаров
+        в магазине (timeworld.ru).
+        campaign_id (str): Идентификатор клиента для работы с выбранной схемой.
+        market_token (str): API-ключ клиента.
+
+    Returns:
+        list: Список актуальных цен на товары продавца на маркетплейсе
+        Yandex.market.
+
+    """
     offer_ids = get_offer_ids(campaign_id, market_token)
     prices = create_prices(watch_remnants, offer_ids)
     for some_prices in list(divide(prices, 500)):
@@ -151,6 +245,22 @@ async def upload_prices(watch_remnants, campaign_id, market_token):
 
 
 async def upload_stocks(watch_remnants, campaign_id, market_token, warehouse_id):
+    """Обновление количества товаров продавца на Yandex.market
+
+    Args:
+        watch_remnants (dict): Информация и количесто товаров
+        в магазине (timeworld.ru).
+        campaign_id (str): Идентификатор клиента для работы с выбранной схемой.
+        market_token (str): API-ключ клиента.
+        warehouse_id (str): Идентификатор склада.
+
+    Returns:
+        list: Список товаров и количество товаров продавца на маркетплейсе Yandex.market
+        (Без товаров с количеством равным 0).
+        list: Список товаров и количество товаров продавца на маркетплейсе Yandex.market
+        (В том числе с товарами у которых количество равно 0).
+
+    """
     offer_ids = get_offer_ids(campaign_id, market_token)
     stocks = create_stocks(watch_remnants, offer_ids, warehouse_id)
     for some_stock in list(divide(stocks, 2000)):
