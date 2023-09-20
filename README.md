@@ -1,4 +1,4 @@
-# Скирпты для обновления информации о продаваемых товарах с сайта [timeworld.ru](www.timeworld.ru)  на Yandex.market и Ozon #
+# Скрипты для обновления информации о продаваемых товарах с сайта [timeworld.ru](www.timeworld.ru)  на Yandex.market и Ozon #
 
 
 ## seller.py ##
